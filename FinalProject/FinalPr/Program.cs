@@ -2,96 +2,83 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
+using Spectre.Console;
+using System.Linq;
 
 namespace FinalPr
 {
     class Program
     {
         static void Main(string[] args)
-        {   Console.Write("Enter your name: ");
-            string userName = Console.ReadLine();
-            Console.Clear();
+        {
+            AnsiConsole.Clear();
+            string userName = AnsiConsole.Ask<string>("[green]Enter your name:[/] ");
+            AnsiConsole.Clear();
 
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine($"Hi {userName}!");
-                Console.WriteLine("1. Symptoms");
-                Console.WriteLine("2. Medication");
-                Console.WriteLine("3. Calendar");
-                Console.WriteLine("4. Exit");
-                Console.Write("Choose an option: ");
-                
-                string choice = Console.ReadLine().ToLower();
-                Console.Clear();
+                AnsiConsole.Clear();
+                AnsiConsole.MarkupLine($"[bold yellow]Hi {userName}![/]");
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[blue]Choose an option:[/]")
+                        .AddChoices("Symptoms", "Medication", "Calendar", "Exit"));
 
                 switch (choice)
                 {
-                    case "1":
+                    case "Symptoms":
                         SymptomsMenu();
                         break;
-                    case "2":
+                    case "Medication":
                         MedicationMenu();
                         break;
-                    case "3":
+                    case "Calendar":
                         CalendarMenu();
                         break;
-                    case "4":
+                    case "Exit":
                         return;
                 }
             }
         }
 
-
-         static void SymptomsMenu()
+        static void SymptomsMenu()
         {
-             while (true)
+            while (true)
             {
-                Console.Clear();
-                Console.WriteLine("Symptoms");
-                Console.WriteLine("1. View History");
-                Console.WriteLine("2. Log Symptom");
-                Console.WriteLine("3. Delete Symptom from History");
-                Console.WriteLine("4. Exit");
-                Console.Write("Choose an option: ");
+                AnsiConsole.Clear();
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[blue]Symptoms Menu[/]")
+                        .AddChoices("View History", "Log Symptom", "Delete Symptom", "Exit"));
 
-                string choice = Console.ReadLine();
-                Console.Clear();
-
-                if (choice == "1")
-                    ViewHistory("symptoms.txt", "symptom");
-                else if (choice == "2")
+                if (choice == "View History")
+                    ViewDetailedHistory("symptoms.txt", "symptom");
+                else if (choice == "Log Symptom")
                     LogEntry("symptoms.txt", "Enter symptom details:");
-                else if (choice == "3")
+                else if (choice == "Delete Symptom")
                     DeleteEntry("symptoms.txt", "symptom");
-                else if (choice == "4")
+                else if (choice == "Exit")
                     break;
             }
         }
-
 
         static void MedicationMenu()
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("Medication");
-                Console.WriteLine("1. View History");
-                Console.WriteLine("2. Log Medication");
-                Console.WriteLine("3. Delete Medication from History");
-                Console.WriteLine("4. Exit");
-                Console.Write("Choose an option: ");
+                AnsiConsole.Clear();
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[blue]Medication Menu[/]")
+                        .AddChoices("View History", "Log Medication", "Delete Medication", "Exit"));
 
-                string choice = Console.ReadLine();
-                Console.Clear();
-
-                if (choice == "1")
-                    ViewHistory("medication.txt", "medication");
-                else if (choice == "2")
+                if (choice == "View History")
+                    ViewDetailedHistory("medication.txt", "medication");
+                else if (choice == "Log Medication")
                     LogEntry("medication.txt", "Enter medication details:");
-                else if (choice == "3")
+                else if (choice == "Delete Medication")
                     DeleteEntry("medication.txt", "medication");
-                else if (choice == "4")
+                else if (choice == "Exit")
                     break;
             }
         }
@@ -100,122 +87,106 @@ namespace FinalPr
         {
             while (true)
             {
-                Console.Clear();
-                Console.WriteLine("Calendar");
-                Console.WriteLine("1. View Upcoming Appointments");
-                Console.WriteLine("2. Log Appointment");
-                Console.WriteLine("3. Delete Appointment from Calendar");
-                Console.WriteLine("4. Exit");
-                Console.Write("Choose an option: ");
+                AnsiConsole.Clear();
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[blue]Calendar Menu[/]")
+                        .AddChoices("View Appointments", "Log Appointment", "Delete Appointment", "Exit"));
 
-                string choice = Console.ReadLine();
-                Console.Clear();
-
-                if (choice == "1")
-                    ViewHistory("appointments.txt", "appointment");
-                else if (choice == "2")
+                if (choice == "View Appointments")
+                    ViewDetailedHistory("appointments.txt", "appointment");
+                else if (choice == "Log Appointment")
                     LogEntry("appointments.txt", "Enter appointment details:");
-                else if (choice == "3")
+                else if (choice == "Delete Appointment")
                     DeleteEntry("appointments.txt", "appointment");
-                else if (choice == "4")
+                else if (choice == "Exit")
                     break;
             }
         }
 
-        // Defining logging entry and viewing history 
-        // Log entry will log in appropriate txt file to store data
-
         static void LogEntry(string fileName, string prompt)
         {
-            Console.Write(prompt + " ");
-            string details = Console.ReadLine();
-            
-            Console.Clear();
-            Console.Write("Enter date (YYYY-MM-DD): ");
+            string details = AnsiConsole.Ask<string>($"[green]{prompt}[/]");
             string date;
 
             while (true)
             {
-                date = Console.ReadLine();
+                date = AnsiConsole.Ask<string>("[green]Enter date (YYYY-MM-DD):[/]");
                 if (DateTime.TryParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
                     break;
-                Console.Write("Invalid date format. Enter again (YYYY-MM-DD): ");
+                AnsiConsole.MarkupLine("[red]Invalid date format. Try again.[/]");
             }
 
             File.AppendAllText(fileName, $"{date}: {details}\n");
-            Console.WriteLine("Entry saved.");
+            AnsiConsole.MarkupLine("[green]Entry saved![/]");
+            Console.ReadKey();  // Added: user must press any key to exit
         }
 
-
-        static void ViewHistory(string fileName, string entryType)
+        static void ViewDetailedHistory(string fileName, string entryType)
         {
-            Console.Clear();
+            AnsiConsole.Clear();
             if (File.Exists(fileName))
             {
                 string[] entries = File.ReadAllLines(fileName);
                 if (entries.Length == 0)
                 {
-                    Console.WriteLine($"No {entryType} history found.");
-                    return;
+                    AnsiConsole.MarkupLine($"[red]No {entryType} history found.[/]");
                 }
-
-                for (int i = 0; i < entries.Length; i++)
+                else
                 {
-                    Console.WriteLine($"{i + 1}. {entries[i]}");
-                }
-
-                Console.Write($"Enter the number of the {entryType} you want to view, or press any key to exit: ");
-                string input = Console.ReadLine();
-
-                if (int.TryParse(input, out int entryNum) && entryNum >= 1 && entryNum <= entries.Length)
-                {
-                    Console.Clear();
-                    Console.WriteLine($"Entry {entryNum}: {entries[entryNum - 1]}");
-                    Console.WriteLine("Press any key to return...");
-                    Console.ReadKey();
+                    while (true)
+                    {
+                        var choice = AnsiConsole.Prompt(
+                            new SelectionPrompt<string>()
+                                .Title($"[blue]Select a {entryType} entry to view:[/]")
+                                .AddChoices(entries.Append("Exit").ToArray()));
+                        
+                        if (choice == "Exit") break;
+                        
+                        AnsiConsole.MarkupLine($"[yellow]{choice}[/]");
+                        Console.ReadKey();  // User needs to press any key to exit after viewing
+                    }
                 }
             }
             else
-                Console.WriteLine($"No {entryType} history found.");
-            
-            Console.WriteLine("Press any key to return...");
-            Console.ReadKey();
+                AnsiConsole.MarkupLine($"[red]No {entryType} history found.[/]");
+
+            // No blank screen, exit to menu immediately
         }
 
         static void DeleteEntry(string fileName, string entryType)
         {
-            Console.Clear();
+            AnsiConsole.Clear();
             if (File.Exists(fileName))
             {
                 string[] entries = File.ReadAllLines(fileName);
                 if (entries.Length == 0)
                 {
-                    Console.WriteLine($"No {entryType} entries to delete.");
+                    AnsiConsole.MarkupLine($"[red]No {entryType} entries to delete.[/]");
                     return;
                 }
 
-                Console.WriteLine($"Select a {entryType} to delete:");
-                for (int i = 0; i < entries.Length; i++)
+                while (true)
                 {
-                    Console.WriteLine($"{i + 1}. {entries[i]}");
-                }
+                    var choice = AnsiConsole.Prompt(
+                        new SelectionPrompt<string>()
+                            .Title($"[blue]Select a {entryType} to delete or Exit:[/]")
+                            .AddChoices(entries.Append("Exit").ToArray()));
 
-                Console.Write($"Enter the number of the {entryType} you want to delete, or press any key to cancel: ");
-                string input = Console.ReadLine();
-
-                if (int.TryParse(input, out int entryNum) && entryNum >= 1 && entryNum <= entries.Length)
-                {
+                    if (choice == "Exit") break;
+                    
                     var updatedEntries = new List<string>(entries);
-                    updatedEntries.RemoveAt(entryNum - 1);
+                    updatedEntries.Remove(choice);
                     File.WriteAllLines(fileName, updatedEntries);
-                    Console.WriteLine($"{entryType} deleted.");
+
+                    AnsiConsole.MarkupLine($"[green]{entryType} deleted.[/]");
+                    break;  // After deletion, exit directly to the menu without showing history again
                 }
             }
             else
-                Console.WriteLine($"No {entryType} entries found.");
-            
-            Console.WriteLine("Press any key to return...");
-            Console.ReadKey();
+                AnsiConsole.MarkupLine($"[red]No {entryType} entries found.[/]");
+
+            // No history shown after deletion, immediately return to the menu
         }
     }
 }
