@@ -119,40 +119,44 @@ namespace FinalPr
 
             File.AppendAllText(fileName, $"{date}: {details}\n");
             AnsiConsole.MarkupLine("[green]Entry saved![/]");
-            Console.ReadKey();  // Added: user must press any key to exit
+            Console.ReadKey();  
         }
 
-        static void ViewDetailedHistory(string fileName, string entryType)
+static void ViewDetailedHistory(string fileName, string entryType)
+{
+    AnsiConsole.Clear();
+    
+    if (File.Exists(fileName))
+    {
+        string[] entries = File.ReadAllLines(fileName);
+        
+        if (entries.Length == 0)
         {
-            AnsiConsole.Clear();
-            if (File.Exists(fileName))
-            {
-                string[] entries = File.ReadAllLines(fileName);
-                if (entries.Length == 0)
-                {
-                    AnsiConsole.MarkupLine($"[red]No {entryType} history found.[/]");
-                }
-                else
-                {
-                    while (true)
-                    {
-                        var choice = AnsiConsole.Prompt(
-                            new SelectionPrompt<string>()
-                                .Title($"[blue]Select a {entryType} entry to view:[/]")
-                                .AddChoices(entries.Append("Exit").ToArray()));
-                        
-                        if (choice == "Exit") break;
-                        
-                        AnsiConsole.MarkupLine($"[yellow]{choice}[/]");
-                        Console.ReadKey();  // User needs to press any key to exit after viewing
-                    }
-                }
-            }
-            else
-                AnsiConsole.MarkupLine($"[red]No {entryType} history found.[/]");
-
-            // No blank screen, exit to menu immediately
+            AnsiConsole.MarkupLine($"[red]No {entryType} history to display.[/]");
+            Console.ReadKey();
+            return;
         }
+        
+        while (true)
+        {
+            var choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title($"[blue]Select a {entryType} entry to view:[/]")
+                    .AddChoices(entries.Append("Exit").ToArray()));
+
+            if (choice == "Exit") break;
+
+            AnsiConsole.MarkupLine($"[yellow]{choice}[/]");
+            Console.ReadKey();
+        }
+    }
+    else
+    {
+        AnsiConsole.MarkupLine($"[red]No {entryType} history found.[/]");
+        Console.ReadKey();
+    }
+}
+
 
         static void DeleteEntry(string fileName, string entryType)
         {
@@ -180,13 +184,12 @@ namespace FinalPr
                     File.WriteAllLines(fileName, updatedEntries);
 
                     AnsiConsole.MarkupLine($"[green]{entryType} deleted.[/]");
-                    break;  // After deletion, exit directly to the menu without showing history again
+                    break;  
                 }
             }
             else
                 AnsiConsole.MarkupLine($"[red]No {entryType} entries found.[/]");
 
-            // No history shown after deletion, immediately return to the menu
         }
     }
 }
