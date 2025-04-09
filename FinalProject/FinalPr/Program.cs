@@ -12,7 +12,7 @@ namespace FinalPr
         static void Main(string[] args)
         {
             AnsiConsole.Clear();
-            string userName = AnsiConsole.Ask<string>("[green]Enter your name:[/] ");
+            string userName = AnsiConsole.Ask<string>("[blue]Enter your name:[/] ");
             AnsiConsole.Clear();
 
             while (true)
