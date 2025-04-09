@@ -17,6 +17,7 @@ public class FileSaverTests
     [Fact]
     public void Test_FileSaver_Append()
     {
+        File.WriteAllText(testFileName, string.Empty); 
         fileSaver.AppendLine("Hello, World!");
         var contentFromFile = File.ReadAllText(testFileName);
         Assert.Equal("Hello, World!"+ Environment.NewLine,contentFromFile);
