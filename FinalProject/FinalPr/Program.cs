@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace FinalPr
 {
-    class Program
+    public class Program
     {
         static void Main(string[] args)
         {
@@ -41,6 +41,7 @@ namespace FinalPr
             }
         }
 
+        // Display symptoms menu and associated options
         static void SymptomsMenu()
         {
             while (true)
@@ -62,6 +63,7 @@ namespace FinalPr
             }
         }
 
+        // Display medication menu and associated options
         static void MedicationMenu()
         {
             while (true)
@@ -83,6 +85,7 @@ namespace FinalPr
             }
         }
 
+        // Display calendar/appointments and associated options
         static void CalendarMenu()
         {
             while (true)
@@ -104,6 +107,7 @@ namespace FinalPr
             }
         }
 
+        // Prompts user for details and logs them with a date into the specified file
         static void LogEntry(string fileName, string prompt)
         {
             string details = AnsiConsole.Ask<string>($"[green]{prompt}[/]");
@@ -117,47 +121,50 @@ namespace FinalPr
                 AnsiConsole.MarkupLine("[red]Invalid date format. Try again.[/]");
             }
 
-            File.AppendAllText(fileName, $"{date}: {details}\n");
+            var saver = new FileSaver(fileName);
+            saver.AppendLine($"{date}: {details}");
+
             AnsiConsole.MarkupLine("[green]Entry saved![/]");
             Console.ReadKey();  
         }
 
-static void ViewDetailedHistory(string fileName, string entryType)
-{
-    AnsiConsole.Clear();
-    
-    if (File.Exists(fileName))
-    {
-        string[] entries = File.ReadAllLines(fileName);
-        
-        if (entries.Length == 0)
+        // Display history from a file, user can select and view individual entries
+        static void ViewDetailedHistory(string fileName, string entryType)
         {
-            AnsiConsole.MarkupLine($"[red]No {entryType} history to display.[/]");
-            Console.ReadKey();
-            return;
+            AnsiConsole.Clear();
+
+            if (File.Exists(fileName))
+            {
+                string[] entries = File.ReadAllLines(fileName);
+
+                if (entries.Length == 0)
+                {
+                    AnsiConsole.MarkupLine($"[red]No {entryType} history to display.[/]");
+                    Console.ReadKey();
+                    return;
+                }
+
+                while (true)
+                {
+                    var choice = AnsiConsole.Prompt(
+                        new SelectionPrompt<string>()
+                            .Title($"[blue]Select a {entryType} entry to view:[/]")
+                            .AddChoices(entries.Append("Exit").ToArray()));
+
+                    if (choice == "Exit") break;
+
+                    AnsiConsole.MarkupLine($"[yellow]{choice}[/]");
+                    Console.ReadKey();
+                }
+            }
+            else
+            {
+                AnsiConsole.MarkupLine($"[red]No {entryType} history found.[/]");
+                Console.ReadKey();
+            }
         }
-        
-        while (true)
-        {
-            var choice = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title($"[blue]Select a {entryType} entry to view:[/]")
-                    .AddChoices(entries.Append("Exit").ToArray()));
 
-            if (choice == "Exit") break;
-
-            AnsiConsole.MarkupLine($"[yellow]{choice}[/]");
-            Console.ReadKey();
-        }
-    }
-    else
-    {
-        AnsiConsole.MarkupLine($"[red]No {entryType} history found.[/]");
-        Console.ReadKey();
-    }
-}
-
-
+        // User can delete a single entry from a file
         static void DeleteEntry(string fileName, string entryType)
         {
             AnsiConsole.Clear();
@@ -178,18 +185,19 @@ static void ViewDetailedHistory(string fileName, string entryType)
                             .AddChoices(entries.Append("Exit").ToArray()));
 
                     if (choice == "Exit") break;
-                    
+
                     var updatedEntries = new List<string>(entries);
                     updatedEntries.Remove(choice);
                     File.WriteAllLines(fileName, updatedEntries);
 
                     AnsiConsole.MarkupLine($"[green]{entryType} deleted.[/]");
-                    break;  
+                    break;
                 }
             }
             else
+            {
                 AnsiConsole.MarkupLine($"[red]No {entryType} entries found.[/]");
-
+            }
         }
     }
 }
