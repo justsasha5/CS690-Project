@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Globalization;
-using Spectre.Console;
-using System.Linq;
+﻿using Spectre.Console;
 
 namespace FinalPr
 {
@@ -19,6 +14,7 @@ namespace FinalPr
             {
                 AnsiConsole.Clear();
                 AnsiConsole.MarkupLine($"[bold yellow]Hi {userName}![/]");
+
                 var choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("[blue]Choose an option:[/]")
@@ -27,176 +23,17 @@ namespace FinalPr
                 switch (choice)
                 {
                     case "Symptoms":
-                        SymptomsMenu();
+                        new MenuManager(new EntryManager("symptoms.txt"), "symptom").ShowMenu();
                         break;
                     case "Medication":
-                        MedicationMenu();
+                        new MenuManager(new EntryManager("medication.txt"), "medication").ShowMenu();
                         break;
                     case "Calendar":
-                        CalendarMenu();
+                        new MenuManager(new EntryManager("appointments.txt"), "appointment").ShowMenu();
                         break;
                     case "Exit":
                         return;
                 }
-            }
-        }
-
-        // Display symptoms menu and associated options
-        static void SymptomsMenu()
-        {
-            while (true)
-            {
-                AnsiConsole.Clear();
-                var choice = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("[blue]Symptoms Menu[/]")
-                        .AddChoices("View History", "Log Symptom", "Delete Symptom", "Exit"));
-
-                if (choice == "View History")
-                    ViewDetailedHistory("symptoms.txt", "symptom");
-                else if (choice == "Log Symptom")
-                    LogEntry("symptoms.txt", "Enter symptom details:");
-                else if (choice == "Delete Symptom")
-                    DeleteEntry("symptoms.txt", "symptom");
-                else if (choice == "Exit")
-                    break;
-            }
-        }
-
-        // Display medication menu and associated options
-        static void MedicationMenu()
-        {
-            while (true)
-            {
-                AnsiConsole.Clear();
-                var choice = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("[blue]Medication Menu[/]")
-                        .AddChoices("View History", "Log Medication", "Delete Medication", "Exit"));
-
-                if (choice == "View History")
-                    ViewDetailedHistory("medication.txt", "medication");
-                else if (choice == "Log Medication")
-                    LogEntry("medication.txt", "Enter medication details:");
-                else if (choice == "Delete Medication")
-                    DeleteEntry("medication.txt", "medication");
-                else if (choice == "Exit")
-                    break;
-            }
-        }
-
-        // Display calendar/appointments and associated options
-        static void CalendarMenu()
-        {
-            while (true)
-            {
-                AnsiConsole.Clear();
-                var choice = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("[blue]Calendar Menu[/]")
-                        .AddChoices("View Appointments", "Log Appointment", "Delete Appointment", "Exit"));
-
-                if (choice == "View Appointments")
-                    ViewDetailedHistory("appointments.txt", "appointment");
-                else if (choice == "Log Appointment")
-                    LogEntry("appointments.txt", "Enter appointment details:");
-                else if (choice == "Delete Appointment")
-                    DeleteEntry("appointments.txt", "appointment");
-                else if (choice == "Exit")
-                    break;
-            }
-        }
-
-        // Prompts user for details and logs them with a date into the specified file
-        static void LogEntry(string fileName, string prompt)
-        {
-            string details = AnsiConsole.Ask<string>($"[green]{prompt}[/]");
-            string date;
-
-            while (true)
-            {
-                date = AnsiConsole.Ask<string>("[green]Enter date (YYYY-MM-DD):[/]");
-                if (DateTime.TryParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-                    break;
-                AnsiConsole.MarkupLine("[red]Invalid date format. Try again.[/]");
-            }
-
-            var saver = new FileSaver(fileName);
-            saver.AppendLine($"{date}: {details}");
-
-            AnsiConsole.MarkupLine("[green]Entry saved![/]");
-            Console.ReadKey();  
-        }
-
-        // Display history from a file, user can select and view individual entries
-        static void ViewDetailedHistory(string fileName, string entryType)
-        {
-            AnsiConsole.Clear();
-
-            if (File.Exists(fileName))
-            {
-                string[] entries = File.ReadAllLines(fileName);
-
-                if (entries.Length == 0)
-                {
-                    AnsiConsole.MarkupLine($"[red]No {entryType} history to display.[/]");
-                    Console.ReadKey();
-                    return;
-                }
-
-                while (true)
-                {
-                    var choice = AnsiConsole.Prompt(
-                        new SelectionPrompt<string>()
-                            .Title($"[blue]Select a {entryType} entry to view:[/]")
-                            .AddChoices(entries.Append("Exit").ToArray()));
-
-                    if (choice == "Exit") break;
-
-                    AnsiConsole.MarkupLine($"[yellow]{choice}[/]");
-                    Console.ReadKey();
-                }
-            }
-            else
-            {
-                AnsiConsole.MarkupLine($"[red]No {entryType} history found.[/]");
-                Console.ReadKey();
-            }
-        }
-
-        // User can delete a single entry from a file
-        static void DeleteEntry(string fileName, string entryType)
-        {
-            AnsiConsole.Clear();
-            if (File.Exists(fileName))
-            {
-                string[] entries = File.ReadAllLines(fileName);
-                if (entries.Length == 0)
-                {
-                    AnsiConsole.MarkupLine($"[red]No {entryType} entries to delete.[/]");
-                    return;
-                }
-
-                while (true)
-                {
-                    var choice = AnsiConsole.Prompt(
-                        new SelectionPrompt<string>()
-                            .Title($"[blue]Select a {entryType} to delete or Exit:[/]")
-                            .AddChoices(entries.Append("Exit").ToArray()));
-
-                    if (choice == "Exit") break;
-
-                    var updatedEntries = new List<string>(entries);
-                    updatedEntries.Remove(choice);
-                    File.WriteAllLines(fileName, updatedEntries);
-
-                    AnsiConsole.MarkupLine($"[green]{entryType} deleted.[/]");
-                    break;
-                }
-            }
-            else
-            {
-                AnsiConsole.MarkupLine($"[red]No {entryType} entries found.[/]");
             }
         }
     }
